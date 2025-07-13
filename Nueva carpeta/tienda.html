@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Tienda INOVA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: green;
+            color: #333;
+        }
+        header {
+            background-color: #ff5722;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        .container {
+            margin: 2rem auto;
+            padding: 1rem;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        table th, table td {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        table th {
+            background-color: #ff5722;
+            color: white;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        form input, form button {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        form button {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #e64a19;
+        }
+    </style>
+</head>
+<body>
+    <header>Administrador - Tienda INOVA</header>
+    <div class="container">
+        <h2>Productos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Colores</th>
+                    <th>Tallas</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unidad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="product-table">
+                <!-- Los productos se cargan dinámicamente -->
+            </tbody>
+        </table>
+
+        <h2>Agregar Producto</h2>
+        <form id="add-product-form">
+            <input type="text" id="product-name" placeholder="Nombre del producto" required>
+            <input type="text" id="product-colors" placeholder="Colores (separados por comas)" required>
+            <input type="text" id="product-sizes" placeholder="Tallas (separadas por comas)" required>
+            <input type="number" id="product-quantity" placeholder="Cantidad" required>
+            <input type="number" id="product-price-unit" placeholder="Precio por unidad" required>
+            <button type="submit">Agregar Producto</button>
+        </form>
+    </div>
+
+    <script>
+        const apiUrl = 'api.php';
+
+        async function fetchProducts() {
+            const response = await fetch(apiUrl);
+            const products = await response.json();
+
+            const table = document.getElementById('product-table');
+            table.innerHTML = '';
+            products.forEach((product) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.colors}</td>
+                    <td>${product.sizes}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.price_unit}</td>
+                    <td>
+                        <button onclick="deleteProduct(${product.product_id})">Eliminar</button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const product = {
+                name: document.getElementById('product-name').value,
+                colors: document.getElementById('product-colors').value,
+                sizes: document.getElementById('product-sizes').value,
+                quantity: document.getElementById('product-quantity').value,
+                priceUnit: document.getElementById('product-price-unit').value,
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(product),
+            });
+
+            if (response.ok) {
+                fetchProducts();
+                e.target.reset();
+            }
+        });
+
+        async function deleteProduct(id) {
+            const response = await fetch(apiUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id }),
+            });
+
+            if (response.ok) {
+                fetchProducts();
+            }
+        }
+
+        fetchProducts();
+    </script>
+</body>
+</html>
